@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFCリーダー</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 50px 20px; }
+    button { padding: 15px 30px; font-size: 20px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
+    #status { margin-top: 30px; font-size: 18px; font-weight: bold; color: #333; }
+  </style>
+</head>
+<body>
+
+  <h1>NFC スキャナー</h1>
+  <button id="scanButton">読み取り開始</button>
+  <p id="status">ボタンを押してNFCをかざしてください</p>
+
+  <script>
+    // ★ここにステップ1でコピーしたGASのウェブアプリURLを貼り付けます★
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzSyruVEPh4bN5rilmItU0UIw9tfjwckgzR3-i2eHyvx7eiib_I5x7ovri612lFWNf7hQ/exec";
+
+    document.getElementById('scanButton').addEventListener('click', async () => {
+      const statusEl = document.getElementById('status');
+      
+      try {
+        // Web NFCに対応しているかチェック
+        if (!("NDEFReader" in window)) {
+          statusEl.innerText = "エラー: このブラウザはWeb NFCに対応していません。(AndroidのChromeを使用してください)";
+          return;
+        }
+
+        const ndef = new NDEFReader();
+        await ndef.scan();
+        statusEl.innerText = "スキャン中... スマホをNFCタグにかざしてください。";
+
+        // NFCを読み取ったときの処理
+        ndef.addEventListener("reading", async ({ serialNumber }) => {
+          statusEl.innerText = `読み取り成功！ ID: ${serialNumber}\nスプレッドシートへ送信中...`;
+
+          try {
+            // GASへデータを送信
+            await fetch(GAS_URL, {
+              method: "POST",
+              mode: "no-cors", // GASへの送信エラー（CORS）を回避するための設定
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: `nfcId=${encodeURIComponent(serialNumber)}`
+            });
+            
+            statusEl.innerText = `送信完了！\n次のNFCをかざすことができます。`;
+          } catch (err) {
+            statusEl.innerText = `送信エラー: ${err.message}`;
+          }
+        });
+
+      } catch (error) {
+        statusEl.innerText = `エラーが発生しました: ${error}`;
+      }
+    });
+  </script>
+
+</body>
+</html>
