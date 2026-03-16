@@ -37,6 +37,7 @@
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
+        // ★ここを nfcId から id に変更しました★
         body: `id=${encodeURIComponent(decodedText)}`
       }).then(() => {
         document.getElementById('status').innerText = `送信完了！\n(3秒後に次を読み取れます)`;
