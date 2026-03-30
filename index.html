@@ -3,60 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QRã‚³ãƒ¼ãƒ‰ãƒªãƒ¼ãƒ€ãƒ¼</title>
+  <title>QRƒR[ƒhƒŠ[ƒ_[</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 20px; }
     #reader { width: 100%; max-width: 400px; margin: 0 auto; }
-    #status { margin-top: 20px; font-size: 18px; font-weight: bold; color: #333; }
+    /* status‚ÌŠî–{ƒfƒUƒCƒ“‚É­‚µŠÛ‚İ‚ğ‚½‚¹‚Ä‚¨‚«‚Ü‚· */
+    #status { margin-top: 20px; font-size: 18px; font-weight: bold; color: #333; transition: background-color 0.3s; border-radius: 8px; }
   </style>
 </head>
 <body>
 
-  <h1>QRã‚¹ã‚­ãƒ£ãƒŠãƒ¼</h1>
+  <h1>QRƒXƒLƒƒƒi[</h1>
   <div id="reader"></div>
-  <p id="status">ã‚«ãƒ¡ãƒ©ã®è¨±å¯ã‚’ã—ã¦ã€QRã‚³ãƒ¼ãƒ‰ã‚’ã‹ã–ã—ã¦ãã ã•ã„</p>
+  <p id="status">ƒJƒƒ‰‚Ì‹–‰Â‚ğ‚µ‚ÄAQRƒR[ƒh‚ğ‚©‚´‚µ‚Ä‚­‚¾‚³‚¢</p>
 
   <script>
-    // â˜…ã“ã“ã«ä»Šã¾ã§ä½¿ã£ã¦ã„ãŸã‚ãªãŸã®GASã®URLã‚’è²¼ã‚Šä»˜ã‘ã¾ã™â˜…
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzSyruVEPh4bN5rilmItU0UIw9tfjwckgzR3-i2eHyvx7eiib_I5x7ovri612lFWNf7hQ/exec";
-    let isProcessing = false; // é€£ç¶šèª­ã¿å–ã‚Šé˜²æ­¢ã®ã‚¹ãƒˆãƒƒãƒ‘ãƒ¼
+    let isProcessing = false;
 
-    // QRã‚³ãƒ¼ãƒ‰ãŒèª­ã¿å–ã‚ŒãŸæ™‚ã«å®Ÿè¡Œã•ã‚Œã‚‹å‡¦ç†
     function onScanSuccess(decodedText) {
-      // ã‚‚ã—å‡¦ç†ä¸­ï¼ˆã‚¹ãƒˆãƒƒãƒ‘ãƒ¼ãŒONï¼‰ãªã‚‰ã€ä½•ã‚‚ã—ãªã„
       if (isProcessing) return;
       
-      isProcessing = true; // ã‚¹ãƒˆãƒƒãƒ‘ãƒ¼ã‚’ONã«ã™ã‚‹
-      document.getElementById('status').innerText = `èª­ã¿å–ã‚ŠæˆåŠŸï¼ ID: ${decodedText}\nã‚¹ãƒ—ãƒ¬ãƒƒãƒ‰ã‚·ãƒ¼ãƒˆã¸é€ä¿¡ä¸­...`;
+      isProcessing = true;
+      
+      // Android—pƒoƒCƒuƒŒ[ƒVƒ‡ƒ“iiPhone‚Å‚Í–³‹‚³‚ê‚Ü‚·j
+      if (navigator.vibrate) {
+        navigator.vibrate(200);
+      }
 
-      // GASã¸ãƒ‡ãƒ¼ã‚¿ã‚’é€ä¿¡ï¼ˆNFCã®æ™‚ã¨åŒã˜ä»•çµ„ã¿ã§é€ã‚Šã¾ã™ï¼‰
+      // š’Ç‰ÁF¬Œ÷‚É”wŒi‚ğ—ÎF‚É‚µAƒ`ƒFƒbƒNƒ}[ƒN‚ğo‚·
+      let statusEl = document.getElementById('status');
+      statusEl.style.backgroundColor = '#d4edda'; // ”–‚¢—ÎF
+      statusEl.style.padding = '15px';
+      statusEl.innerText = `? “Ç‚İæ‚è¬Œ÷I ID: ${decodedText}\nƒXƒvƒŒƒbƒhƒV[ƒg‚Ö‘—M’†...`;
+
       fetch(GAS_URL, {
         method: "POST",
         mode: "no-cors",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        // â˜…ã“ã“ã‚’ nfcId ã‹ã‚‰ id ã«å¤‰æ›´ã—ã¾ã—ãŸâ˜…
         body: `id=${encodeURIComponent(decodedText)}`
       }).then(() => {
-        document.getElementById('status').innerText = `é€ä¿¡å®Œäº†ï¼\n(3ç§’å¾Œã«æ¬¡ã‚’èª­ã¿å–ã‚Œã¾ã™)`;
+        statusEl.innerText = `? ‘—MŠ®—¹I\n(3•bŒã‚ÉŸ‚ğ“Ç‚İæ‚ê‚Ü‚·)`;
         
-        // 3ç§’å¾Œã«ã‚¹ãƒˆãƒƒãƒ‘ãƒ¼ã‚’è§£é™¤ã—ã¦ã€æ¬¡ã®èª­ã¿å–ã‚Šã‚’å¯èƒ½ã«ã™ã‚‹
         setTimeout(() => {
           isProcessing = false;
-          document.getElementById('status').innerText = "æ¬¡ã®QRã‚³ãƒ¼ãƒ‰ã‚’ã‹ã–ã—ã¦ãã ã•ã„";
+          // š’Ç‰ÁF3•bŒã‚ÉŒ³‚ÌƒfƒUƒCƒ“i“§–¾j‚É–ß‚·
+          statusEl.style.backgroundColor = 'transparent';
+          statusEl.style.padding = '0px';
+          statusEl.innerText = "Ÿ‚ÌQRƒR[ƒh‚ğ‚©‚´‚µ‚Ä‚­‚¾‚³‚¢";
         }, 3000);
       }).catch(err => {
-        document.getElementById('status').innerText = `é€ä¿¡ã‚¨ãƒ©ãƒ¼: ${err.message}`;
-        setTimeout(() => { isProcessing = false; }, 3000); // ã‚¨ãƒ©ãƒ¼æ™‚ã‚‚3ç§’å¾Œã«è§£é™¤
+        // š’Ç‰ÁFƒGƒ‰[‚ÍÔF‚É‚µ‚ÄŒx‚·‚é
+        statusEl.style.backgroundColor = '#f8d7da'; // ”–‚¢ÔF
+        statusEl.style.padding = '15px';
+        statusEl.innerText = `? ‘—MƒGƒ‰[: ${err.message}`;
+        setTimeout(() => { 
+          isProcessing = false; 
+          statusEl.style.backgroundColor = 'transparent';
+          statusEl.style.padding = '0px';
+          statusEl.innerText = "Ÿ‚ÌQRƒR[ƒh‚ğ‚©‚´‚µ‚Ä‚­‚¾‚³‚¢";
+        }, 3000);
       });
     }
 
-    // QRã‚³ãƒ¼ãƒ‰ãƒªãƒ¼ãƒ€ãƒ¼ã®è¨­å®šã¨èµ·å‹•
     let html5QrcodeScanner = new Html5QrcodeScanner(
       "reader", 
-      { fps: 10, qrbox: {width: 250, height: 250} }, // èª­ã¿å–ã‚Šæ ã®ã‚µã‚¤ã‚º
+      { 
+        fps: 10, 
+        qrbox: {width: 250, height: 250},
+        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+      },
       false
     );
     html5QrcodeScanner.render(onScanSuccess);
