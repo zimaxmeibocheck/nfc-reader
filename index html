@@ -36,7 +36,7 @@
       let statusEl = document.getElementById('status');
       statusEl.style.backgroundColor = '#d4edda'; // 薄い緑色
       statusEl.style.padding = '15px';
-      statusEl.innerText = `? 読み取り成功！ ID: ${decodedText}\nスプレッドシートへ送信中...`;
+      statusEl.innerText = `✅ 読み取り成功！ ID: ${decodedText}\nスプレッドシートへ送信中...`;
 
       fetch(GAS_URL, {
         method: "POST",
@@ -46,7 +46,7 @@
         },
         body: `id=${encodeURIComponent(decodedText)}`
       }).then(() => {
-        statusEl.innerText = `? 送信完了！\n(3秒後に次を読み取れます)`;
+        statusEl.innerText = `✅ 送信完了！\n(3秒後に次を読み取れます)`;
         
         setTimeout(() => {
           isProcessing = false;
@@ -59,7 +59,7 @@
         // ★追加：エラー時は赤色にして警告する
         statusEl.style.backgroundColor = '#f8d7da'; // 薄い赤色
         statusEl.style.padding = '15px';
-        statusEl.innerText = `? 送信エラー: ${err.message}`;
+        statusEl.innerText = `❌ 送信エラー: ${err.message}`;
         setTimeout(() => { 
           isProcessing = false; 
           statusEl.style.backgroundColor = 'transparent';
