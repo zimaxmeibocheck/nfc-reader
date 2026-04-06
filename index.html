@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QRã‚³ãƒ¼ãƒ‰ãƒªãƒ¼ãƒ€ãƒ¼</title>
+  <title>QRƒR[ƒhƒŠ[ƒ_[</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 20px; }
@@ -13,9 +13,9 @@
 </head>
 <body>
 
-  <h1>QRã‚¹ã‚­ãƒ£ãƒŠãƒ¼</h1>
+  <h1>QRƒXƒLƒƒƒi[</h1>
   <div id="reader"></div>
-  <p id="status">ã‚«ãƒ¡ãƒ©ã®è¨±å¯ã‚’ã—ã¦ã€QRã‚³ãƒ¼ãƒ‰ã‚’ã‹ã–ã—ã¦ãã ã•ã„</p>
+  <p id="status">ƒJƒƒ‰‚Ì‹–‰Â‚ğ‚µ‚ÄAQRƒR[ƒh‚ğ‚©‚´‚µ‚Ä‚­‚¾‚³‚¢</p>
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzSyruVEPh4bN5rilmItU0UIw9tfjwckgzR3-i2eHyvx7eiib_I5x7ovri612lFWNf7hQ/exec";
@@ -26,16 +26,16 @@
       
       isProcessing = true;
       
-      // Androidç”¨ãƒã‚¤ãƒ–ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³
+      // Android—pƒoƒCƒuƒŒ[ƒVƒ‡ƒ“
       if (navigator.vibrate) {
         navigator.vibrate(200);
       }
 
-      // æˆåŠŸæ™‚ã«èƒŒæ™¯ã‚’ç·‘è‰²ã«ã™ã‚‹
+      // ¬Œ÷‚É”wŒi‚ğ—ÎF‚É‚·‚é
       let statusEl = document.getElementById('status');
       statusEl.style.backgroundColor = '#d4edda'; 
       statusEl.style.padding = '15px';
-      statusEl.innerText = `èª­ã¿å–ã‚ŠæˆåŠŸï¼ ID: ${decodedText}\nã‚¹ãƒ—ãƒ¬ãƒƒãƒ‰ã‚·ãƒ¼ãƒˆã¸é€ä¿¡ä¸­...`;
+      statusEl.innerText = `“Ç‚İæ‚è¬Œ÷I ID: ${decodedText}\nƒXƒvƒŒƒbƒhƒV[ƒg‚Ö‘—M’†...`;
 
       fetch(GAS_URL, {
         method: "POST",
@@ -45,24 +45,24 @@
         },
         body: `id=${encodeURIComponent(decodedText)}`
       }).then(() => {
-        statusEl.innerText = `é€ä¿¡å®Œäº†ï¼\n(3ç§’å¾Œã«æ¬¡ã‚’èª­ã¿å–ã‚Œã¾ã™)`;
+        statusEl.innerText = `‘—MŠ®—¹I\n(3•bŒã‚ÉŸ‚ğ“Ç‚İæ‚ê‚Ü‚·)`;
         
         setTimeout(() => {
           isProcessing = false;
           statusEl.style.backgroundColor = 'transparent';
           statusEl.style.padding = '0px';
-          statusEl.innerText = "æ¬¡ã®QRã‚³ãƒ¼ãƒ‰ã‚’ã‹ã–ã—ã¦ãã ã•ã„";
+          statusEl.innerText = "Ÿ‚ÌQRƒR[ƒh‚ğ‚©‚´‚µ‚Ä‚­‚¾‚³‚¢";
         }, 3000);
       }).catch(err => {
-        // ã‚¨ãƒ©ãƒ¼æ™‚ã¯èµ¤è‰²ã«ã—ã¦è­¦å‘Šã™ã‚‹
+        // ƒGƒ‰[‚ÍÔF‚É‚µ‚ÄŒx‚·‚é
         statusEl.style.backgroundColor = '#f8d7da'; 
         statusEl.style.padding = '15px';
-        statusEl.innerText = `é€ä¿¡ã‚¨ãƒ©ãƒ¼: ${err.message}`;
+        statusEl.innerText = `‘—MƒGƒ‰[: ${err.message}`;
         setTimeout(() => { 
           isProcessing = false; 
           statusEl.style.backgroundColor = 'transparent';
           statusEl.style.padding = '0px';
-          statusEl.innerText = "æ¬¡ã®QRã‚³ãƒ¼ãƒ‰ã‚’ã‹ã–ã—ã¦ãã ã•ã„";
+          statusEl.innerText = "Ÿ‚ÌQRƒR[ƒh‚ğ‚©‚´‚µ‚Ä‚­‚¾‚³‚¢";
         }, 3000);
       });
     }
@@ -72,7 +72,9 @@
       { 
         fps: 10, 
         qrbox: {width: 250, height: 250},
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+        // š’Ç‰ÁF“Ç‚İæ‚éí—Ş‚ğuQRƒR[ƒhv‚Ì‚İ‚ÉŒÀ’è‚·‚éiŒëŒŸ’m–h~j
+        formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
       },
       false
     );
