@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- 役員対策：検索エンジン避け -->
+  <meta name="robots" content="noindex, nofollow">
+  
   <title>QRコードリーダー（業務管理）</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
@@ -31,19 +35,24 @@
     /* エラーマーク */
     .error-mark { color: #f56c6c; font-size: 44px; font-weight: bold; line-height: 1; }
 
-    /* 管理用リセットボタン（必要に応じて使用、不要なら削除可能） */
+    /* 管理用リセットボタン */
     .btn-reset { margin-top: 30px; padding: 10px 20px; background-color: #fff; border: 1px solid #dcdfe6; border-radius: 4px; color: #606266; cursor: pointer; font-size: 14px; }
     .btn-reset:hover { background-color: #f5f7fa; color: #409eff; border-color: #c6e2ff; }
+
+    /* メール通知エリアのデザイン */
+    #email-container { max-width: 440px; margin: 30px auto 0; padding: 20px; background: #ffffff; border: 1px solid #dcdfe6; border-radius: 4px; box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05); }
   </style>
 </head>
 <body>
 
+  <!-- QRコードスキャン画面 -->
   <div id="scan-container">
     <h1>QRコードスキャン</h1>
     <div id="reader"></div>
     <p id="status">カメラの枠内にQRコードをかざしてください</p>
   </div>
 
+  <!-- スキャン結果画面 -->
   <div id="result-container">
     <div id="status-icon" class="icon-wrapper">
       <div class="spinner"></div>
@@ -52,33 +61,43 @@
     <button class="btn-reset" onclick="location.reload();">次の読み取り（画面再読み込み）</button>
   </div>
 
+  <!-- 打刻忘れ通知エリア -->
+  <div id="email-container">
+    <p style="margin-bottom: 10px; font-weight: bold; color: #2c3e50;">打刻忘れのメンバーに通知する</p>
+    <p style="font-size: 12px; color: #909399; margin-bottom: 10px;">※苗字やひらがな、あだ名でも送信できます</p>
+    <input type="text" id="targetInput" placeholder="例：たなか、太郎、IDなど" style="padding: 10px; font-size: 16px; width: 70%; max-width: 250px; border: 1px solid #dcdfe6; border-radius: 4px; margin-bottom: 15px;">
+    <br>
+    <button id="sendSpecificEmailBtn" onclick="sendSpecificReminder()" style="padding: 10px 20px; font-size: 15px; background-color: #606266; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">通知メールを送信</button>
+  </div>
+
   <script>
+    // ★重要★ GASのウェブアプリURL（QR読み取りとメール送信の両方でこのURLが使われます）
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzSyruVEPh4bN5rilmItU0UIw9tfjwckgzR3-i2eHyvx7eiib_I5x7ovri612lFWNf7hQ/exec";
+    
     let isProcessing = false;
 
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ▼ 1. QRコードを読み取った時の処理（既存の処理をそのまま保持）
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     function onScanSuccess(decodedText) {
       if (isProcessing) return;
       isProcessing = true;
       
-      // 端末バイブレーション（対応機種のみ）
       if (navigator.vibrate) {
         navigator.vibrate(150);
       }
 
-      // カメラを即座に安全停止
       html5QrcodeScanner.clear().then(() => {
-        // 表示コンテナの切り替え（前回のタイポを修正）
         document.getElementById('scan-container').style.display = 'none';
+        document.getElementById('email-container').style.display = 'none'; // 送信中はメール欄も隠す
         document.getElementById('result-container').style.display = 'block';
         
         const iconEl = document.getElementById('status-icon');
         const textEl = document.getElementById('result-text');
         
-        // 初期状態：送信中
         iconEl.innerHTML = '<div class="spinner"></div>';
         textEl.innerHTML = `対象ID: <strong>${decodedText}</strong><br><br><span style="color: #909399;">システムへ送信中...</span>`;
 
-        // GAS（Google Apps Script）へPOST送信
         fetch(GAS_URL, {
           method: "POST",
           mode: "no-cors",
@@ -87,21 +106,18 @@
           },
           body: `id=${encodeURIComponent(decodedText)}`
         }).then(() => {
-          // 送信成功（完了表示）
           iconEl.innerHTML = '<div class="success-mark">✓</div>';
           textEl.innerHTML = `対象ID: <strong>${decodedText}</strong><br><br><span style="color: #67c23a; font-weight: bold; font-size: 18px;">データ送信が完了しました</span>`;
         }).catch(err => {
-          // 通信エラー発生時
           iconEl.innerHTML = '<div class="error-mark">✕</div>';
           textEl.innerHTML = `対象ID: <strong>${decodedText}</strong><br><br><span style="color: #f56c6c; font-weight: bold;">送信エラーが発生しました</span><br><small style="color: #909399;">${err.message}</small>`;
         });
-
       }).catch(err => {
         console.error("カメラ停止処理エラー:", err);
       });
     }
 
-    // スキャナー初期化設定（QRコードのみに限定）
+    // スキャナー初期化設定
     let html5QrcodeScanner = new Html5QrcodeScanner(
       "reader", 
       { 
@@ -113,48 +129,10 @@
       false
     );
     html5QrcodeScanner.render(onScanSuccess);
-  </script>
 
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- ▼ 役員対策：Google検索などの検索エンジン避け（必須） ▼ -->
-  <meta name="robots" content="noindex, nofollow">
-  
-  <title>入退室リーダー</title>
-</head>
-<body>
-
-  <!-- ========================================================= -->
-  <!-- ※ここに既存のQRカメラ画面（<div id="reader"></div> など）を残してください -->
-  <!-- ========================================================= -->
-
-  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-  <!-- ▼ 打刻忘れ通知エリア（手動打刻なし・メール送信のみ） ▼ -->
-  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-  <div style="margin-top: 20px; padding: 15px; background: #e2e3e5; border-radius: 8px; text-align: center;">
-    <p style="margin-bottom: 10px; font-weight: bold; color: #383d41;">打刻忘れのメンバーに通知する</p>
-    <p style="font-size: 12px; color: #666; margin-bottom: 5px;">※苗字やひらがな、あだ名でも送信できます</p>
-    <input type="text" id="targetInput" placeholder="例：たなか、太郎、IDなど" style="padding: 10px; font-size: 16px; width: 70%; max-width: 250px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px;">
-    <br>
-    <button id="sendSpecificEmailBtn" onclick="sendSpecificReminder()" style="padding: 10px 20px; font-size: 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">通知メールを送信</button>
-  </div>
-
-  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-  <!-- ▼ 通信用のプログラム（JavaScript） ▼ -->
-  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
-  <script>
-    // ★重要★ 最新のGASのURLをここに貼り付けてください
-    var gasUrl = "https://script.google.com/macros/s/AKfycbzSyruVEPh4bN5rilmItU0UIw9tfjwckgzR3-i2eHyvx7eiib_I5x7ovri612lFWNf7hQ/exec";
-
-    // -----------------------------------------------------
-    // 通知メールを送信する処理
-    // -----------------------------------------------------
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // ▼ 2. 通知メールを送信する処理（新規追加）
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     function sendSpecificReminder() {
       var target = document.getElementById("targetInput").value.trim();
       if (target === "") {
@@ -169,12 +147,18 @@
       btn.innerText = "送信中...";
       btn.disabled = true;
 
-      fetch(gasUrl, {
+      // メール送信処理（GASからの返答メッセージを受け取るため no-cors は使用しません）
+      fetch(GAS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'action=sendSpecificReminder&target=' + encodeURIComponent(target)
       })
-      .then(response => response.text())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("ネットワークエラー");
+        }
+        return response.text();
+      })
       .then(result => {
         alert(result); 
         document.getElementById("targetInput").value = ""; 
@@ -182,16 +166,12 @@
         btn.disabled = false;
       })
       .catch(error => {
-        alert("通信エラーが発生しました。");
+        alert("通信エラーが発生しました。アクセス権限やURLの末尾が /exec になっているか確認してください。");
         btn.innerText = "通知メールを送信";
         btn.disabled = false;
       });
     }
-
-    // =========================================================
-    // ※ここに既存のQR読み取り用のJavaScript（QRコードを読み取った際に
-    // fetchを使ってGASにIDを送信する処理など）を残してください
-    // =========================================================
   </script>
+
 </body>
 </html>
