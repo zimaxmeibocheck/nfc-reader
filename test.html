@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- ▼ 役員対策：Google検索などの検索エンジン避け（必須） ▼ -->
+  <meta name="robots" content="noindex, nofollow">
+  
+  <title>入退室リーダー</title>
+</head>
+<body>
+
+  <!-- ========================================================= -->
+  <!-- ※ここに既存のQRカメラ画面（<div id="reader"></div> など）を残してください -->
+  <!-- ========================================================= -->
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <!-- ▼ 1. 手動入力エリア（QRが読めない時の応急用） ▼ -->
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: center;">
+    <p style="margin-bottom: 10px; font-weight: bold; color: #333;">QRコードが読み込めない場合</p>
+    <input type="text" id="manualIdInput" placeholder="ここにご自身のIDを入力" style="padding: 10px; font-size: 16px; width: 60%; max-width: 200px; border: 1px solid #ccc; border-radius: 4px;">
+    <br><br>
+    <button onclick="sendManualId()" style="padding: 10px 20px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">手動で打刻</button>
+  </div>
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <!-- ▼ 2. 打刻忘れ通知エリア（手入力式・ひらがな/あだ名対応） ▼ -->
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <div style="margin-top: 20px; padding: 15px; background: #e2e3e5; border-radius: 8px; text-align: center;">
+    <p style="margin-bottom: 10px; font-weight: bold; color: #383d41;">打刻忘れのメンバーに通知する</p>
+    <p style="font-size: 12px; color: #666; margin-bottom: 5px;">※苗字やひらがなの一部でも送信できます</p>
+    <input type="text" id="targetInput" placeholder="例：たなか、太郎、IDなど" style="padding: 10px; font-size: 16px; width: 70%; max-width: 250px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px;">
+    <br>
+    <button id="sendSpecificEmailBtn" onclick="sendSpecificReminder()" style="padding: 10px 20px; font-size: 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">通知メールを送信</button>
+  </div>
+
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <!-- ▼ 3. 通信用のプログラム（JavaScript） ▼ -->
+  <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+  <script>
+    // ★重要★ GASのウェブアプリURLをここに貼り付けてください
+    var gasUrl = "ここにGASのURLを貼り付けます";
+
+    // -----------------------------------------------------
+    // ① 手動で打刻する処理
+    // -----------------------------------------------------
+    function sendManualId() {
+      var inputId = document.getElementById("manualIdInput").value.trim();
+      if (inputId === "") {
+        alert("IDを入力してください。");
+        return;
+      }
+
+      var btn = document.querySelector("button[onclick='sendManualId()']");
+      btn.innerText = "送信中...";
+      btn.disabled = true;
+
+      fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'id=' + encodeURIComponent(inputId)
+      })
+      .then(response => response.text())
+      .then(result => {
+        alert("打刻が完了しました！");
+        document.getElementById("manualIdInput").value = "";
+        btn.innerText = "手動で打刻";
+        btn.disabled = false;
+      })
+      .catch(error => {
+        alert("通信エラーが発生しました。");
+        btn.innerText = "手動で打刻";
+        btn.disabled = false;
+      });
+    }
+
+    // -----------------------------------------------------
+    // ② 通知メールを送信する処理
+    // -----------------------------------------------------
+    function sendSpecificReminder() {
+      var target = document.getElementById("targetInput").value.trim();
+      if (target === "") {
+        alert("通知を送りたい相手の名前（ひらがな可）を入力してください。");
+        return;
+      }
+
+      var confirmSend = confirm("「" + target + "」さん宛てに通知を送信しますか？");
+      if (!confirmSend) { return; }
+
+      var btn = document.getElementById("sendSpecificEmailBtn");
+      btn.innerText = "送信中...";
+      btn.disabled = true;
+
+      fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'action=sendSpecificReminder&target=' + encodeURIComponent(target)
+      })
+      .then(response => response.text())
+      .then(result => {
+        alert(result); 
+        document.getElementById("targetInput").value = ""; 
+        btn.innerText = "通知メールを送信";
+        btn.disabled = false;
+      })
+      .catch(error => {
+        alert("通信エラーが発生しました。");
+        btn.innerText = "通知メールを送信";
+        btn.disabled = false;
+      });
+    }
+  </script>
+</body>
+</html>
